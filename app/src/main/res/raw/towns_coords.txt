@@ -1,0 +1,5 @@
+Claude's_office,44.340852,-69.797395
+Farmhouse,44.340752,-69.797331
+Randall_Student_Center,44.338945,-69.795609
+Bookstore,44.338975,-69.795513
+Campus_Green,44.338434,-69.796210
