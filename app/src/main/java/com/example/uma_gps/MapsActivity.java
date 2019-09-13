@@ -5,15 +5,19 @@ import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.FragmentActivity;
@@ -37,8 +41,13 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
-public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, AdapterView.OnItemSelectedListener {
+public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, AdapterView.OnItemSelectedListener
+{
+    Spinner spin1;
+    Spinner spin2;
     private static final String TAG = "mapsActivity";
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1234;
     private static final Object FINE_LOCATION = Manifest.permission.ACCESS_FINE_LOCATION;
@@ -47,15 +56,26 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private UiSettings mUiSettings; //
     //protected TextView mUrlDisplayTextView;
     private FusedLocationProviderClient mFusedLocationProviderClient;
-    private static final float DEFAULT_ZOOM = 15f;
+    private static final float DEFAULT_ZOOM = 16f;
     private Boolean mLocationPermissionsGranted = false;
-    double[][] coordArray = new double[6][2];
+    ArrayList<Double[]> coordArray = new ArrayList<Double[]>();
+    ArrayList<Double[]> coordArrayMain = new ArrayList<Double[]>();
+    ArrayList<Double[]> coordArrayRandall = new ArrayList<Double[]>();
+    ArrayList<String> Randall_Student_Center = new ArrayList<String>();
     ArrayList<String> nameArray = new ArrayList<String>();
+    ArrayList<String> jewettHall = new ArrayList<String>();
+    ArrayList<String> choice = new ArrayList<String>();
     private static final String PATH_TO_SERVER = "http://provost.uma.edu/api/";
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
+        jewettHall.add("Room_101");
+        jewettHall.add("Room_102");
+        jewettHall.add("Room_103");
+
+        //spin2.setVisibility(View.GONE);
+
         DownloadFilesTask downloadFilesTask = new DownloadFilesTask();
         downloadFilesTask.execute();
         super.onCreate(savedInstanceState);
@@ -66,6 +86,27 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mapFragment.getMapAsync(this);
         //mUrlDisplayTextView = (TextView) findViewById(R.id.tv_url_display);
         getLocationPermission();
+    }
+
+    public class Reminder
+    {
+        Timer timer;
+
+        public Reminder(int seconds)
+        {
+            timer = new Timer();
+            timer.schedule(new RemindTask(), seconds * 1000);
+        }
+
+        class RemindTask extends TimerTask
+        {
+            public void run()
+            {
+                spin1.setSelection(0);
+                //System.out.println("Time's up!");
+                timer.cancel(); //Terminate the timer thread
+            }
+        }
     }
 
     private class DownloadFilesTask extends AsyncTask<URL, Void, List<String[]>>
@@ -111,15 +152,152 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         return csvLine;
     }
 
-    private void createListAdapter()
+    public void clearMarkers(View v)
     {
-        Spinner spin = (Spinner) findViewById(R.id.spinner1);
-        spin.setOnItemSelectedListener(this);
+        // Do your stuff
+        Toast.makeText(getApplicationContext(), "Clear Map", Toast.LENGTH_SHORT).show();
+        mMap.clear();
+    }
+
+    private void createListAdapter3(Spinner s)
+    {
+        s = (Spinner) findViewById(R.id.spinner2); // Declared the spinner globally so I could use it in onItemSelected method
+        s.setOnItemSelectedListener(this);
         //Creating the ArrayAdapter instance having the bank name list
-        ArrayAdapter aa = new ArrayAdapter(this, android.R.layout.simple_spinner_item, nameArray);
+        ArrayAdapter bb = new ArrayAdapter(this, android.R.layout.simple_spinner_item, choice);
+        bb.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        //Setting the ArrayAdapter data on the Spinner
+        s.setAdapter(bb);
+        s.setVisibility(View.GONE);
+    }
+
+    private void createArrayAdapter2(ArrayList<String> choice)
+    {
+        spin2 = (Spinner) findViewById(R.id.spinner2); // Declared the spinner globally so I could use it in onItemSelected method
+        spin2.setOnItemSelectedListener(this);
+        //Creating the ArrayAdapter instance
+        ArrayAdapter bb = new ArrayAdapter(this, android.R.layout.simple_spinner_item, choice);
+        bb.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        //Setting the ArrayAdapter data on the Spinner
+        spin2.setAdapter(bb);
+        spin2.setVisibility(View.GONE);
+    }
+
+    private void createArrayAdapter(ArrayList<String> name)
+    {
+        spin1 = (Spinner) findViewById(R.id.spinner1); // Declared the spinner globally so I could use it in onItemSelected method
+        spin1.setOnItemSelectedListener(this);
+        //Creating the ArrayAdapter instance having the location list
+        ArrayAdapter aa = new ArrayAdapter(this, android.R.layout.simple_spinner_item, name);
         aa.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         //Setting the ArrayAdapter data on the Spinner
-        spin.setAdapter(aa);
+        spin1.setAdapter(aa);
+    }
+
+    @Override
+    public void onItemSelected(AdapterView<?> arg0, View arg1, int position, long id)
+    {
+
+        if (arg0.getId() == R.id.spinner1)
+        {
+            if (position == 3)
+            {
+                choice = Randall_Student_Center;
+                coordArray = coordArrayRandall;
+                createArrayAdapter2(choice);
+                spin2.setVisibility(View.VISIBLE);
+            }
+
+            spin2.setSelection(0);
+            LatLng loca = new LatLng(coordArrayMain.get(position)[0], coordArrayMain.get(position)[1]);
+            mMap.addMarker(new MarkerOptions().position(loca).title(nameArray.get(position)));
+
+            Toast.makeText(getApplicationContext(), nameArray.get(position), Toast.LENGTH_SHORT).show();
+            //if (position == 5)
+            //{
+                //spin2.setVisibility(View.VISIBLE);
+            //}
+        }
+        if (arg0.getId() == R.id.spinner2)
+        {
+            LatLng loca = new LatLng(coordArray.get(position)[0], coordArray.get(position)[1]);
+            mMap.addMarker(new MarkerOptions().position(loca).title(choice.get(position)));
+
+            //spin2.setVisibility(View.GONE); // This hides the spinner.
+            //spin1.setSelection(0);
+            if (position == 1)
+            {
+                //mMap.clear();
+                //Toast.makeText(getApplicationContext(), Randall_Student_Center.get(position), Toast.LENGTH_SHORT).show();
+                spin2.setVisibility(View.GONE); // This hides the spinner.
+                //new Reminder(2);
+                new Handler().postDelayed(new Runnable() {
+                    @Override
+                    public void run()
+                    {
+                        spin1.setSelection(0);
+                    }
+                }, 3000);
+            }
+        }
+    }
+
+    @Override
+    public void onNothingSelected(AdapterView<?> arg0)
+    {
+        // TODO Auto-generated method stub
+    }
+
+    private void convertCsvFile(List<String[]> result)
+    {
+        for (int i = 0; i < 6; i++)
+        {
+            String[] rows = result.get(i);
+            nameArray.add(rows[0]);
+
+            Double[] row = new Double[2];
+            row[0] = Double.parseDouble(result.get(i)[1]);
+            row[1] = Double.parseDouble(result.get(i)[2]);
+            coordArrayMain.add(row);
+        }
+
+        for (int i = 6; i < 9; i++)
+        {
+            String[] rows = result.get(i);
+            Randall_Student_Center.add(rows[0]);
+
+            Double[] row = new Double[2];
+            row[0] = Double.parseDouble(result.get(i)[1]);
+            row[1] = Double.parseDouble(result.get(i)[2]);
+            coordArrayRandall.add(row);
+        }
+
+        createArrayAdapter(nameArray);
+        createArrayAdapter2(jewettHall);
+    }
+
+    private void getLocationPermission()
+    {
+        Log.d(TAG, "getLocationPermission: getting location permissions");
+        String[] permissions = {Manifest.permission.ACCESS_FINE_LOCATION,
+                Manifest.permission.ACCESS_COARSE_LOCATION};
+
+        if (ContextCompat.checkSelfPermission(this.getApplicationContext(),
+                (String) FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            if (ContextCompat.checkSelfPermission(this.getApplicationContext(),
+                    COURSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                mLocationPermissionsGranted = true;
+                initMap();
+            } else {
+                ActivityCompat.requestPermissions(this,
+                        permissions,
+                        LOCATION_PERMISSION_REQUEST_CODE);
+            }
+        } else {
+            ActivityCompat.requestPermissions(this,
+                    permissions,
+                    LOCATION_PERMISSION_REQUEST_CODE);
+        }
     }
 
     private void getDeviceLocation()
@@ -148,50 +326,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             }
         } catch (SecurityException e) {
             Log.e(TAG, "getDeviceLocation: SecurityException: " + e.getMessage());
-        }
-    }
-
-    private void moveCamera(LatLng latLng, float zoom) {
-        Log.d(TAG, "move camera: moving the camera to: lat: " + latLng.latitude + ", lng: " + latLng.longitude);
-        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, zoom));
-    }
-
-    @Override
-    public void onItemSelected(AdapterView<?> arg0, View arg1, int position, long id)
-    {
-        LatLng loca = new LatLng(coordArray[position][0], coordArray[position][1]);
-        mMap.addMarker(new MarkerOptions().position(loca).title(nameArray.get(position)));
-
-        Toast.makeText(getApplicationContext(), nameArray.get(position), Toast.LENGTH_LONG).show();
-    }
-
-    @Override
-    public void onNothingSelected(AdapterView<?> arg0)
-    {
-        // TODO Auto-generated method stub
-    }
-
-    private void getLocationPermission()
-    {
-        Log.d(TAG, "getLocationPermission: getting location permissions");
-        String[] permissions = {Manifest.permission.ACCESS_FINE_LOCATION,
-                Manifest.permission.ACCESS_COARSE_LOCATION};
-
-        if (ContextCompat.checkSelfPermission(this.getApplicationContext(),
-                (String) FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            if (ContextCompat.checkSelfPermission(this.getApplicationContext(),
-                    COURSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-                mLocationPermissionsGranted = true;
-                initMap();
-            } else {
-                ActivityCompat.requestPermissions(this,
-                        permissions,
-                        LOCATION_PERMISSION_REQUEST_CODE);
-            }
-        } else {
-            ActivityCompat.requestPermissions(this,
-                    permissions,
-                    LOCATION_PERMISSION_REQUEST_CODE);
         }
     }
 
@@ -227,23 +361,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mapFragment.getMapAsync(this);
     }
 
-    private void convertCsvFile(List<String[]> result)
+    private void moveCamera(LatLng latLng, float zoom)
     {
-        int x = 0;
-        for (int i = 0; i < result.size(); i++)
-        {
-            String[] rows = result.get(i);
-            nameArray.add(rows[0]);
-
-            int col = 0;
-            for (int y = 1; y < rows.length; y++)
-            {
-                coordArray[x][col] = Double.parseDouble(rows[y]);
-                col++;
-            }
-            x++;
-        }
-        createListAdapter();
+        Log.d(TAG, "move camera: moving the camera to: lat: " + latLng.latitude + ", lng: " + latLng.longitude);
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, zoom));
     }
 }
 

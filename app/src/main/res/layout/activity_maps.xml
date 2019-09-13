@@ -14,7 +14,29 @@
         android:layout_height="wrap_content"
         android:layout_gravity="top|center"
         android:background="@android:drawable/btn_dropdown"
-        android:text="My first app!"
         android:spinnerMode="dropdown"/>
+
+    <Spinner
+        android:id="@+id/spinner2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:background="@android:drawable/btn_dropdown"
+        android:spinnerMode="dropdown"/>
+    <RelativeLayout
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent">
+
+    <Button
+        android:id="@+id/button1"
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        android:padding="10dp"
+        android:text="Clear Markers"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentBottom="true"
+        android:onClick="clearMarkers"/>
+
+    </RelativeLayout>
 
 </fragment>
