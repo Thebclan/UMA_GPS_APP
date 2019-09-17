@@ -2,6 +2,7 @@ package com.example.uma_gps;
 
 import android.Manifest;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.location.Location;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -12,6 +13,7 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.RelativeLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -66,6 +68,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     ArrayList<String> jewettHall = new ArrayList<String>();
     ArrayList<String> choice = new ArrayList<String>();
     private static final String PATH_TO_SERVER = "http://provost.uma.edu/api/";
+
+    //RelativeLayout layout1 = (RelativeLayout) findViewById(R.id.button_window); // Declaring this here didn't work
+                               // Had to declare it in the onItemSelected method
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -157,6 +162,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         // Do your stuff
         Toast.makeText(getApplicationContext(), "Clear Map", Toast.LENGTH_SHORT).show();
         mMap.clear();
+        spin1.setSelection(0);
+        spin2.setVisibility(View.GONE);
     }
 
     private void createListAdapter3(Spinner s)
@@ -197,31 +204,40 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     public void onItemSelected(AdapterView<?> arg0, View arg1, int position, long id)
     {
-
+        LatLng loca;
         if (arg0.getId() == R.id.spinner1)
         {
-            if (position == 3)
+            if (position > 0)
             {
-                choice = Randall_Student_Center;
-                coordArray = coordArrayRandall;
-                createArrayAdapter2(choice);
-                spin2.setVisibility(View.VISIBLE);
-            }
+                if (position == 3)
+                {
+                    choice = Randall_Student_Center;
+                    coordArray = coordArrayRandall;
+                    createArrayAdapter2(choice);
+                    spin2.setVisibility(View.VISIBLE);
+                }
 
-            spin2.setSelection(0);
-            LatLng loca = new LatLng(coordArrayMain.get(position)[0], coordArrayMain.get(position)[1]);
-            mMap.addMarker(new MarkerOptions().position(loca).title(nameArray.get(position)));
+                spin2.setSelection(0);
 
-            Toast.makeText(getApplicationContext(), nameArray.get(position), Toast.LENGTH_SHORT).show();
-            //if (position == 5)
-            //{
+                loca = new LatLng(coordArrayMain.get(position)[0], coordArrayMain.get(position)[1]);
+                mMap.addMarker(new MarkerOptions().position(loca).title(nameArray.get(position)));
+
+                //if (position > 0)
+                moveCamera(loca, 17f);
+
+                Toast.makeText(getApplicationContext(), nameArray.get(position), Toast.LENGTH_SHORT).show();
+                //if (position == 5)
+                //{
                 //spin2.setVisibility(View.VISIBLE);
-            //}
+            }
         }
         if (arg0.getId() == R.id.spinner2)
         {
-            LatLng loca = new LatLng(coordArray.get(position)[0], coordArray.get(position)[1]);
+            loca = new LatLng(coordArray.get(position)[0], coordArray.get(position)[1]);
             mMap.addMarker(new MarkerOptions().position(loca).title(choice.get(position)));
+
+            if (position > 0)
+            moveCamera(loca, 18f);
 
             //spin2.setVisibility(View.GONE); // This hides the spinner.
             //spin1.setSelection(0);
@@ -230,14 +246,17 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 //mMap.clear();
                 //Toast.makeText(getApplicationContext(), Randall_Student_Center.get(position), Toast.LENGTH_SHORT).show();
                 spin2.setVisibility(View.GONE); // This hides the spinner.
-                //new Reminder(2);
-                new Handler().postDelayed(new Runnable() {
-                    @Override
-                    public void run()
-                    {
-                        spin1.setSelection(0);
-                    }
-                }, 3000);
+                RelativeLayout layout1 = (RelativeLayout) findViewById(R.id.button_window);
+                //layout1.setVisibility(View.INVISIBLE); // This works
+                //layout1.setBackgroundColor(Color.BLACK); // This works
+                //new Reminder(2); // Don't need this
+                //new Handler().postDelayed(new Runnable() {
+                    //@Override
+                    //public void run()
+                    //{
+                        //spin1.setSelection(0);
+                    //}
+                //}, 3000);
             }
         }
     }
@@ -250,7 +269,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     private void convertCsvFile(List<String[]> result)
     {
-        for (int i = 0; i < 6; i++)
+        for (int i = 0; i < 7; i++)
         {
             String[] rows = result.get(i);
             nameArray.add(rows[0]);
@@ -261,7 +280,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             coordArrayMain.add(row);
         }
 
-        for (int i = 6; i < 9; i++)
+        for (int i = 7; i < 11; i++)
         {
             String[] rows = result.get(i);
             Randall_Student_Center.add(rows[0]);

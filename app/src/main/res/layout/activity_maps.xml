@@ -8,6 +8,22 @@
     android:layout_height="match_parent"
     tools:context=".MapsActivity" >
 
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical" >
+
+        <TextView
+            android:id="@+id/tv_url_display"
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:layout_marginTop="8dp"
+            android:gravity="center"
+            android:text="UMA Augusta Campus"
+            android:textColor="#FFFFFF"
+            android:background="#003057"
+            android:textSize="22sp" />
+
     <Spinner
         android:id="@+id/spinner1"
         android:layout_width="match_parent"
@@ -23,7 +39,11 @@
         android:layout_gravity="center"
         android:background="@android:drawable/btn_dropdown"
         android:spinnerMode="dropdown"/>
+    </LinearLayout>
+
+
     <RelativeLayout
+        android:id="@+id/button_window"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent">
 
@@ -33,6 +53,8 @@
         android:layout_width="wrap_content"
         android:padding="10dp"
         android:text="Clear Markers"
+        android:background="#003057"
+        android:textColor="#FFFFFF"
         android:layout_alignParentLeft="true"
         android:layout_alignParentBottom="true"
         android:onClick="clearMarkers"/>
