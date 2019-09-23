@@ -17,7 +17,7 @@
             android:id="@+id/tv_url_display"
             android:layout_width="match_parent"
             android:layout_height="40dp"
-            android:layout_marginTop="8dp"
+
             android:gravity="center"
             android:text="UMA Augusta Campus"
             android:textColor="#FFFFFF"
@@ -52,7 +52,7 @@
         android:layout_height="wrap_content"
         android:layout_width="wrap_content"
         android:padding="10dp"
-        android:text="Clear Markers"
+        android:text="Clear Markers/Reset"
         android:background="#003057"
         android:textColor="#FFFFFF"
         android:layout_alignParentLeft="true"
@@ -60,5 +60,57 @@
         android:onClick="clearMarkers"/>
 
     </RelativeLayout>
+
+    <LinearLayout
+        android:id="@+id/firstAppStart"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical" >
+
+        <ImageView android:src="@drawable/uma_logo"
+            android:layout_width="wrap_content"
+            android:layout_height="60dp"
+            android:layout_marginBottom="10dp"
+            android:layout_marginTop="40dp"
+            android:layout_gravity="center_horizontal" />
+
+        <TextView
+            android:id="@+id/test"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="4dp"
+            android:layout_marginTop="20dp"
+            android:layout_marginLeft="10dp"
+            android:layout_marginRight="10dp"
+            android:visibility="invisible"
+            android:layout_gravity="center"
+            android:text="If you would like your hours on campus to be associated with your email address, please
+            enter it here. You will only have this option the first time you use this app."
+            android:textColor="#FFFFFF"
+            android:textSize="22sp" />
+            <!--android:background="#003057"-->
+
+        <EditText android:id="@+id/input_email"
+            android:layout_width="match_parent"
+            android:layout_height="70dp"
+            android:paddingBottom="10dp"
+            android:inputType="textEmailAddress"
+            android:hint="Email" />
+
+        <Button
+            android:id="@+id/send"
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content"
+            android:padding="10dp"
+            android:layout_marginTop="50dp"
+            android:text="Send"
+            android:background="#003057"
+            android:textColor="#FFFFFF"
+            android:layout_gravity="center"
+
+            android:onClick="send"/>
+
+    </LinearLayout>
+
 
 </fragment>

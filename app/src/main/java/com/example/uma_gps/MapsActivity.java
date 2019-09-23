@@ -1,18 +1,25 @@
 package com.example.uma_gps;
 
 import android.Manifest;
+import android.content.Context;
+import android.content.DialogInterface;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Location;
+import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -20,6 +27,7 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.FragmentActivity;
@@ -38,9 +46,11 @@ import com.google.android.gms.tasks.Task;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.InetAddress;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Timer;
@@ -48,6 +58,10 @@ import java.util.TimerTask;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, AdapterView.OnItemSelectedListener
 {
+    public static String deviceIpAddress = "";
+    String email;
+    EditText emailInput;
+    LinearLayout layout1;
     Spinner spin1;
     Spinner spin2;
     private static final String TAG = "mapsActivity";
@@ -69,28 +83,106 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     ArrayList<String> choice = new ArrayList<String>();
     private static final String PATH_TO_SERVER = "http://provost.uma.edu/api/";
 
+
     //RelativeLayout layout1 = (RelativeLayout) findViewById(R.id.button_window); // Declaring this here didn't work
                                // Had to declare it in the onItemSelected method
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
+
         jewettHall.add("Room_101");
         jewettHall.add("Room_102");
         jewettHall.add("Room_103");
 
-        //spin2.setVisibility(View.GONE);
-
         DownloadFilesTask downloadFilesTask = new DownloadFilesTask();
         downloadFilesTask.execute();
+
+        SharedPreferences prefs = getSharedPreferences("prefs", MODE_PRIVATE);
+        boolean firstStart = prefs.getBoolean("firstStart", true);
+
+        //if (firstStart)
+        //{
+            //showStartDialog(); // App wouldn't run if i put this here
+        //}
+
+        //getIpAddress(this); // Only works if connected to wifi. Saved the code in notepad
+        getIPAddress(); // This works but showing wrong ip address(found out phones can have several)
+        //Toast.makeText(getApplicationContext(), deviceIpAddress, Toast.LENGTH_SHORT).show();
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
+
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
         //mUrlDisplayTextView = (TextView) findViewById(R.id.tv_url_display);
         getLocationPermission();
+        showStartDialog(); // Had to put this down here for the app to run
+
+        emailInput = (EditText) findViewById(R.id.input_email);
+    }
+
+    //    @NonNull
+    public void getIPAddress() {
+        if (TextUtils.isEmpty(deviceIpAddress))
+            new PublicIPAddress().execute();
+        //return deviceIpAddress;
+    }
+
+
+    public class PublicIPAddress extends AsyncTask<String, Void, String> {
+        InetAddress localhost = null;
+
+        protected String doInBackground(String... urls) {
+            try {
+                localhost = InetAddress.getLocalHost();
+                URL url_name = new URL("http://bot.whatismyipaddress.com");
+                BufferedReader sc = new BufferedReader(new InputStreamReader(url_name.openStream()));
+                deviceIpAddress = sc.readLine().trim();
+            } catch (Exception e) {
+                deviceIpAddress = "";
+            }
+            //Toast.makeText(getApplicationContext(), deviceIpAddress, Toast.LENGTH_SHORT).show(); // App wouldn't start
+                                                                                  // with this enabled
+            return deviceIpAddress;
+        }
+
+        protected void onPostExecute(String string) {
+            Log.d("deviceIpAddress", string);
+            Toast.makeText(getApplicationContext(), deviceIpAddress, Toast.LENGTH_SHORT).show();
+        }
+    }
+
+
+
+    // Got this from YouTube 'Do Something on First App Start Only - Android Studio Tutorial'  9/19/19
+    public void showStartDialog()
+    {
+        layout1 = (LinearLayout) findViewById(R.id.firstAppStart);
+        Toast.makeText(getApplicationContext(), "Testing first app start", Toast.LENGTH_SHORT).show();
+        TextView test = (TextView) findViewById(R.id.test);
+        test.setVisibility(View.VISIBLE);
+        layout1.setBackgroundColor(Color.parseColor("#A4D65E"));
+        layout1.setVisibility(View.VISIBLE);
+
+        /*
+        new AlertDialog.Builder(this)
+                .setTitle("One time dialog")
+                .setMessage("This should only be shown once")
+                .setPositiveButton("ok", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int i) {
+                        dialog.dismiss();
+                    }
+                })
+                .create().show();
+       */
+        //SharedPreferences prefs = getSharedPreferences("prefs", MODE_PRIVATE);
+        //SharedPreferences.Editor editor = prefs.edit();
+        //editor.putBoolean("firstStart", false);
+        //editor.apply();
     }
 
     public class Reminder
@@ -159,11 +251,22 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     public void clearMarkers(View v)
     {
-        // Do your stuff
         Toast.makeText(getApplicationContext(), "Clear Map", Toast.LENGTH_SHORT).show();
         mMap.clear();
         spin1.setSelection(0);
         spin2.setVisibility(View.GONE);
+    }
+
+    // This is for the 'send' button in the firstAppStart view
+    public void send(View v)
+    {
+        // Get the address typed in and assign it to the variable 'email'
+        email = emailInput.getText().toString();
+        Toast.makeText(getApplicationContext(), email, Toast.LENGTH_SHORT).show();// For testing
+        layout1.setVisibility(View.GONE);
+        // Make send button disappear here
+        Button button1 = (Button) findViewById(R.id.send);
+        button1.setVisibility(View.GONE);
     }
 
     private void createListAdapter3(Spinner s)
@@ -207,8 +310,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         LatLng loca;
         if (arg0.getId() == R.id.spinner1)
         {
-            if (position > 0)
+            if (position > 0) // This is so no marker is shown until something in the list is selected
             {
+                //spin2.setVisibility(View.GONE);
+
+                //Toast.makeText(getApplicationContext(), "Touch marker for more info", Toast.LENGTH_SHORT).show();
                 if (position == 3)
                 {
                     choice = Randall_Student_Center;
@@ -233,30 +339,52 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
         if (arg0.getId() == R.id.spinner2)
         {
-            loca = new LatLng(coordArray.get(position)[0], coordArray.get(position)[1]);
-            mMap.addMarker(new MarkerOptions().position(loca).title(choice.get(position)));
-
-            if (position > 0)
-            moveCamera(loca, 18f);
-
-            //spin2.setVisibility(View.GONE); // This hides the spinner.
-            //spin1.setSelection(0);
-            if (position == 1)
+            if (position > 0) // This is so no marker is shown until something in the list is selected
             {
-                //mMap.clear();
-                //Toast.makeText(getApplicationContext(), Randall_Student_Center.get(position), Toast.LENGTH_SHORT).show();
-                spin2.setVisibility(View.GONE); // This hides the spinner.
-                RelativeLayout layout1 = (RelativeLayout) findViewById(R.id.button_window);
-                //layout1.setVisibility(View.INVISIBLE); // This works
-                //layout1.setBackgroundColor(Color.BLACK); // This works
-                //new Reminder(2); // Don't need this
-                //new Handler().postDelayed(new Runnable() {
+                //spin2.setSelection(0);
+
+                Toast.makeText(getApplicationContext(), "Touch marker for more info", Toast.LENGTH_SHORT).show();
+
+                String moreInfo = "";
+
+                if (position == 2)
+                {
+                    moreInfo = "2nd floor";
+                }
+
+                loca = new LatLng(coordArray.get(position)[0], coordArray.get(position)[1]);
+                mMap.addMarker(new MarkerOptions().position(loca).title(choice.get(position)).snippet(moreInfo));
+
+                //if (position > 0)
+                moveCamera(loca, 19f);
+
+                //spin2.setVisibility(View.GONE); // This hides the spinner.
+                //spin1.setSelection(0);
+                if (position == 1) // Did this to test visibility
+                {
+                    //mMap.clear();
+                    //Toast.makeText(getApplicationContext(), Randall_Student_Center.get(position), Toast.LENGTH_SHORT).show();
+                    spin2.setVisibility(View.GONE); // This hides the spinner.
+                    spin1.setSelection(0);
+
+                    //LinearLayout layout1 = (LinearLayout) findViewById(R.id.firstAppStart);
+                    //TextView test = (TextView) findViewById(R.id.test);
+                    //test.setVisibility(View.VISIBLE);
+
+                    //RelativeLayout layout1 = (RelativeLayout) findViewById(R.id.button_window);
+                    //layout1.setVisibility(View.INVISIBLE); // This works
+                    //layout1.setBackgroundColor(Color.WHITE);
+                    //layout1.setVisibility(View.VISIBLE);
+                    // This works
+                    //new Reminder(2); // Don't need this
+                    //new Handler().postDelayed(new Runnable() { // This creates a delay
                     //@Override
                     //public void run()
                     //{
-                        //spin1.setSelection(0);
+                    //spin1.setSelection(0);
                     //}
-                //}, 3000);
+                    //}, 3000);
+                }
             }
         }
     }
@@ -269,7 +397,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     private void convertCsvFile(List<String[]> result)
     {
-        for (int i = 0; i < 7; i++)
+        for (int i = 0; i < 7; i++) // result.size()
         {
             String[] rows = result.get(i);
             nameArray.add(rows[0]);
@@ -292,7 +420,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
 
         createArrayAdapter(nameArray);
-        createArrayAdapter2(jewettHall);
+        createArrayAdapter2(jewettHall); // Had to do this so array wouldn't be empty when it gets populated in
+                                         // the onItemSelected method
     }
 
     private void getLocationPermission()
