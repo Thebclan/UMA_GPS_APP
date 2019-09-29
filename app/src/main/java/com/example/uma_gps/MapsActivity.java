@@ -1,12 +1,16 @@
 package com.example.uma_gps;
 
 import android.Manifest;
+<<<<<<< HEAD
 import android.content.Context;
 import android.content.DialogInterface;
+=======
+>>>>>>> Deleted .git repo and started from scratch
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Location;
+<<<<<<< HEAD
 import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -21,13 +25,27 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
+=======
+import android.os.AsyncTask;
+import android.os.Bundle;
+import android.text.TextUtils;
+import android.util.Log;
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.EditText;
+import android.widget.LinearLayout;
+>>>>>>> Deleted .git repo and started from scratch
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+<<<<<<< HEAD
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
+=======
+>>>>>>> Deleted .git repo and started from scratch
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.FragmentActivity;
@@ -43,6 +61,21 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+<<<<<<< HEAD
+=======
+
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.util.EntityUtils;
+
+>>>>>>> Deleted .git repo and started from scratch
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -50,7 +83,10 @@ import java.net.InetAddress;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
+<<<<<<< HEAD
 import java.net.UnknownHostException;
+=======
+>>>>>>> Deleted .git repo and started from scratch
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Timer;
@@ -59,9 +95,19 @@ import java.util.TimerTask;
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, AdapterView.OnItemSelectedListener
 {
     public static String deviceIpAddress = "";
+<<<<<<< HEAD
     String email;
     EditText emailInput;
     LinearLayout layout1;
+=======
+    String token = "";
+    String email;
+    String code;
+    EditText emailInput;
+    EditText codeInput;
+    LinearLayout layout1; // Enter/send email. First screen on first app start.
+    LinearLayout layout2; // Enter/submit code. Second screen on first app start.
+>>>>>>> Deleted .git repo and started from scratch
     Spinner spin1;
     Spinner spin2;
     private static final String TAG = "mapsActivity";
@@ -81,16 +127,26 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     ArrayList<String> nameArray = new ArrayList<String>();
     ArrayList<String> jewettHall = new ArrayList<String>();
     ArrayList<String> choice = new ArrayList<String>();
+<<<<<<< HEAD
     private static final String PATH_TO_SERVER = "http://provost.uma.edu/api/";
 
 
     //RelativeLayout layout1 = (RelativeLayout) findViewById(R.id.button_window); // Declaring this here didn't work
                                // Had to declare it in the onItemSelected method
+=======
+    private static final String PATH_TO_SERVER = "https://provost.uma.edu/api/"; // Used in the background to retrieve the location data
+    String ServerURL = "https://provost.uma.edu/api/login.php"; // To send email address to api
+    String ValidationURL = "https://provost.uma.edu/api/validate.php"; // To send code to api
+
+>>>>>>> Deleted .git repo and started from scratch
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
+<<<<<<< HEAD
 
+=======
+>>>>>>> Deleted .git repo and started from scratch
         jewettHall.add("Room_101");
         jewettHall.add("Room_102");
         jewettHall.add("Room_103");
@@ -100,11 +156,16 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         SharedPreferences prefs = getSharedPreferences("prefs", MODE_PRIVATE);
         boolean firstStart = prefs.getBoolean("firstStart", true);
+<<<<<<< HEAD
 
         //if (firstStart)
         //{
             //showStartDialog(); // App wouldn't run if i put this here
         //}
+=======
+        token = prefs.getString("token", "");
+
+>>>>>>> Deleted .git repo and started from scratch
 
         //getIpAddress(this); // Only works if connected to wifi. Saved the code in notepad
         getIPAddress(); // This works but showing wrong ip address(found out phones can have several)
@@ -117,11 +178,26 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
+<<<<<<< HEAD
         //mUrlDisplayTextView = (TextView) findViewById(R.id.tv_url_display);
         getLocationPermission();
         showStartDialog(); // Had to put this down here for the app to run
 
         emailInput = (EditText) findViewById(R.id.input_email);
+=======
+        //mapFragment.setVisibility(View.GONE); // This doesn't work
+        //mUrlDisplayTextView = (TextView) findViewById(R.id.tv_url_display);
+        getLocationPermission();
+
+        layout2 = (LinearLayout) findViewById(R.id.enter_code);
+        layout2.setBackgroundColor(Color.parseColor("#A4D65E"));
+        layout2.setVisibility(View.GONE);
+
+        showStartDialog(); // Had to put this down here for the app to run
+
+        emailInput = (EditText) findViewById(R.id.input_email);
+        codeInput = (EditText) findViewById(R.id.input_code);
+>>>>>>> Deleted .git repo and started from scratch
     }
 
     //    @NonNull
@@ -155,11 +231,19 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
     }
 
+<<<<<<< HEAD
 
 
     // Got this from YouTube 'Do Something on First App Start Only - Android Studio Tutorial'  9/19/19
     public void showStartDialog()
     {
+=======
+    // Got this from YouTube 'Do Something on First App Start Only - Android Studio Tutorial'  9/19/19
+    public void showStartDialog()
+    {
+        //layout2 = (LinearLayout) findViewById(R.id.enter_code);
+        //layout2.setVisibility(View.GONE);
+>>>>>>> Deleted .git repo and started from scratch
         layout1 = (LinearLayout) findViewById(R.id.firstAppStart);
         Toast.makeText(getApplicationContext(), "Testing first app start", Toast.LENGTH_SHORT).show();
         TextView test = (TextView) findViewById(R.id.test);
@@ -258,12 +342,17 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     // This is for the 'send' button in the firstAppStart view
+<<<<<<< HEAD
     public void send(View v)
+=======
+    public void sendAddress(View v)
+>>>>>>> Deleted .git repo and started from scratch
     {
         // Get the address typed in and assign it to the variable 'email'
         email = emailInput.getText().toString();
         Toast.makeText(getApplicationContext(), email, Toast.LENGTH_SHORT).show();// For testing
         layout1.setVisibility(View.GONE);
+<<<<<<< HEAD
         // Make send button disappear here
         Button button1 = (Button) findViewById(R.id.send);
         button1.setVisibility(View.GONE);
@@ -281,6 +370,98 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         s.setVisibility(View.GONE);
     }
 
+=======
+
+        TextView code_text = (TextView) findViewById(R.id.code_info);
+        code_text.setVisibility(View.VISIBLE);
+        layout2.setVisibility(View.VISIBLE);
+
+        InsertData(email, "code", ServerURL);
+
+        // Make 'send' button disappear here
+        //Button button1 = (Button) findViewById(R.id.send_email);
+        //button1.setVisibility(View.GONE);
+    }
+
+    public void sendCode(View v)
+    {
+        code = codeInput.getText().toString();
+        Toast.makeText(getApplicationContext(), "Testing send_code button", Toast.LENGTH_SHORT).show();
+
+        InsertData(email, code, ValidationURL);
+    }
+
+    public void InsertData(final String email, final String code, final String url)
+    {
+        class SendPostReqAsyncTask extends AsyncTask<String, Void, String>
+        {
+            @Override
+            protected String doInBackground(String... params)
+            {
+                String mEmail = email;
+                String mCode = code;
+                List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>();
+                nameValuePairs.add(new BasicNameValuePair("email", mEmail));
+                nameValuePairs.add(new BasicNameValuePair("validation_code", mCode)); // Will use this when sending code
+
+                try {
+                    HttpClient httpClient = new DefaultHttpClient();
+
+                    HttpPost httpPost = new HttpPost(url);
+
+                    httpPost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
+
+                    HttpResponse httpResponse;
+                    httpResponse = httpClient.execute(httpPost);
+
+                    HttpEntity httpEntity = httpResponse.getEntity(); // Gets the token
+
+                    if (url.equals(ValidationURL)) { // 'if' statement makes sure the token is assigned to the variable after the second 'send' button is pressed
+                        token = EntityUtils.toString(httpEntity); // Converts token to a string and assigns it to a variable
+                        //httpPost.addHeader("Authorization", "Bearer" + token); // Can't use this here. I need to put it in the method
+                                                  // that sends the data in the background
+                    }
+
+
+                } catch (ClientProtocolException e) {
+
+                } catch (IOException e) {
+
+                }
+                return "Data Inserted Successfully";
+            } // End doInBackground
+            @Override
+            protected void onPostExecute(String result) {
+
+                super.onPostExecute(result);
+
+                if (url.equals(ValidationURL)) {// 'if' statements make sure the second layout disappears only after the second button is pressed and only
+                                                // after the token is created
+                    if (!token.equals("")) {
+
+                        layout2.setVisibility(View.GONE);
+
+                        ////SharedPreferences prefs = getSharedPreferences("prefs", MODE_PRIVATE);
+                        //        //SharedPreferences.Editor editor = prefs.edit();
+                        //        //editor.putString("token", token);
+                        //        //editor.apply();
+                    }
+                }
+
+
+                Toast.makeText(getApplicationContext(), "Data Submit Successfully", Toast.LENGTH_LONG).show();
+                Toast.makeText(getApplicationContext(), token, Toast.LENGTH_LONG).show();
+
+            } // End onPostExecute
+        } // End class
+
+        SendPostReqAsyncTask sendPostReqAsyncTask = new SendPostReqAsyncTask();
+
+        sendPostReqAsyncTask.execute(email, code);
+
+    } // End InsertData method
+
+>>>>>>> Deleted .git repo and started from scratch
     private void createArrayAdapter2(ArrayList<String> choice)
     {
         spin2 = (Spinner) findViewById(R.id.spinner2); // Declared the spinner globally so I could use it in onItemSelected method
@@ -325,6 +506,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
                 spin2.setSelection(0);
 
+<<<<<<< HEAD
+=======
+                // Should I make an 'addMarker' method?
+>>>>>>> Deleted .git repo and started from scratch
                 loca = new LatLng(coordArrayMain.get(position)[0], coordArrayMain.get(position)[1]);
                 mMap.addMarker(new MarkerOptions().position(loca).title(nameArray.get(position)));
 
