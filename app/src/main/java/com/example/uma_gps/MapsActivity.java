@@ -1,31 +1,12 @@
 package com.example.uma_gps;
 
 import android.Manifest;
-<<<<<<< HEAD
-import android.content.Context;
-import android.content.DialogInterface;
-=======
->>>>>>> Deleted .git repo and started from scratch
+import android.app.PendingIntent;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Location;
-<<<<<<< HEAD
-import android.net.wifi.WifiManager;
-import android.os.AsyncTask;
-import android.os.Bundle;
-import android.os.Handler;
-import android.text.TextUtils;
-import android.util.Log;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.LinearLayout;
-import android.widget.RelativeLayout;
-=======
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -35,34 +16,35 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.LinearLayout;
->>>>>>> Deleted .git repo and started from scratch
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-<<<<<<< HEAD
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.AlertDialog;
-=======
->>>>>>> Deleted .git repo and started from scratch
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.FragmentActivity;
 
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GoogleApiAvailability;
+import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.Geofence;
+import com.google.android.gms.location.GeofencingClient;
+import com.google.android.gms.location.GeofencingRequest;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.UiSettings;
+import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
-<<<<<<< HEAD
-=======
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -75,7 +57,6 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 
->>>>>>> Deleted .git repo and started from scratch
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -83,23 +64,19 @@ import java.net.InetAddress;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
-<<<<<<< HEAD
-import java.net.UnknownHostException;
-=======
->>>>>>> Deleted .git repo and started from scratch
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
+
+
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, AdapterView.OnItemSelectedListener
+
+
+
 {
     public static String deviceIpAddress = "";
-<<<<<<< HEAD
-    String email;
-    EditText emailInput;
-    LinearLayout layout1;
-=======
     String token = "";
     String email;
     String code;
@@ -107,7 +84,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     EditText codeInput;
     LinearLayout layout1; // Enter/send email. First screen on first app start.
     LinearLayout layout2; // Enter/submit code. Second screen on first app start.
->>>>>>> Deleted .git repo and started from scratch
     Spinner spin1;
     Spinner spin2;
     private static final String TAG = "mapsActivity";
@@ -127,26 +103,27 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     ArrayList<String> nameArray = new ArrayList<String>();
     ArrayList<String> jewettHall = new ArrayList<String>();
     ArrayList<String> choice = new ArrayList<String>();
-<<<<<<< HEAD
-    private static final String PATH_TO_SERVER = "http://provost.uma.edu/api/";
-
-
-    //RelativeLayout layout1 = (RelativeLayout) findViewById(R.id.button_window); // Declaring this here didn't work
-                               // Had to declare it in the onItemSelected method
-=======
     private static final String PATH_TO_SERVER = "https://provost.uma.edu/api/"; // Used in the background to retrieve the location data
     String ServerURL = "https://provost.uma.edu/api/login.php"; // To send email address to api
     String ValidationURL = "https://provost.uma.edu/api/validate.php"; // To send code to api
 
->>>>>>> Deleted .git repo and started from scratch
+
+
+    private Geofence myGeofence;
+    private LocationServices mLocationService;
+
+
+    private GoogleApiClient mApiClient;
+    private GeofencingClient myGeofencingClient;
+    private GeofencingRequest myRequest;
+    private  PendingIntent geofencePendingIntent;  // Stores the PendingIntent used to request geofence monitoring.
+    //private Circle geoFenceLimits;
+    protected static int received = 0;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
-<<<<<<< HEAD
-
-=======
->>>>>>> Deleted .git repo and started from scratch
         jewettHall.add("Room_101");
         jewettHall.add("Room_102");
         jewettHall.add("Room_103");
@@ -156,16 +133,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         SharedPreferences prefs = getSharedPreferences("prefs", MODE_PRIVATE);
         boolean firstStart = prefs.getBoolean("firstStart", true);
-<<<<<<< HEAD
-
-        //if (firstStart)
-        //{
-            //showStartDialog(); // App wouldn't run if i put this here
-        //}
-=======
         token = prefs.getString("token", "");
 
->>>>>>> Deleted .git repo and started from scratch
 
         //getIpAddress(this); // Only works if connected to wifi. Saved the code in notepad
         getIPAddress(); // This works but showing wrong ip address(found out phones can have several)
@@ -174,17 +143,24 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
 
+        if (!isGooglePlayServicesAvailable()) {
+            Log.e(TAG, "Google Play services unavailable.");
+            finish();
+            return;
+        }
+/*
+        mApiClient = new GoogleApiClient.Builder(this)
+                .addApi(LocationServices.API)
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
+                .build();
+
+        mApiClient.connect();
+*/
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
-<<<<<<< HEAD
-        //mUrlDisplayTextView = (TextView) findViewById(R.id.tv_url_display);
-        getLocationPermission();
-        showStartDialog(); // Had to put this down here for the app to run
-
-        emailInput = (EditText) findViewById(R.id.input_email);
-=======
         //mapFragment.setVisibility(View.GONE); // This doesn't work
         //mUrlDisplayTextView = (TextView) findViewById(R.id.tv_url_display);
         getLocationPermission();
@@ -197,8 +173,151 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         emailInput = (EditText) findViewById(R.id.input_email);
         codeInput = (EditText) findViewById(R.id.input_code);
->>>>>>> Deleted .git repo and started from scratch
+
+        createGeofence();
+
+        myGeofencingClient = LocationServices.getGeofencingClient(this);
+
     }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        addFences();
+    }
+
+    private void createGeofence()
+    {
+        myGeofence = new Geofence.Builder()
+        .setRequestId("UMA_Augusta").setCircularRegion(44.3408203, -69.7973877,2)
+                .setExpirationDuration(myGeofence.NEVER_EXPIRE)
+                .setTransitionTypes( myGeofence.GEOFENCE_TRANSITION_ENTER | myGeofence.GEOFENCE_TRANSITION_EXIT )
+                .build();
+    }
+
+    private GeofencingRequest getGeofencingRequest() {
+        GeofencingRequest.Builder builder = new GeofencingRequest.Builder();
+        builder.setInitialTrigger(GeofencingRequest.INITIAL_TRIGGER_ENTER);
+        builder.addGeofence(myGeofence);
+        Log.i(TAG,"This is the getGeofencingRequest method");
+        return builder.build();
+    }
+
+    private PendingIntent getGeofencePendingIntent() {
+        // Reuse the PendingIntent if we already have it.
+        Log.i(TAG,"This is the 1st getGeofencePendingIntent method");
+        if (geofencePendingIntent != null) {
+            Log.i(TAG,"This is the 2nd getGeofencePendingIntent method");
+            return geofencePendingIntent;
+        }
+        Intent intent = new Intent(this, GeofenceBroadcastReceiver.class);
+        // We use FLAG_UPDATE_CURRENT so that we get the same pending intent back when
+        // calling addGeofences() and removeGeofences().
+        geofencePendingIntent = PendingIntent.getBroadcast(this, 0, intent, PendingIntent.
+                FLAG_UPDATE_CURRENT);
+        Log.i(TAG,"This is the 3rd getGeofencePendingIntent method");
+        return geofencePendingIntent;
+    }
+
+    private void addFences()
+    {
+        myGeofencingClient.addGeofences(getGeofencingRequest(), getGeofencePendingIntent())
+                .addOnSuccessListener(this, new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void aVoid) {
+                        // Geofences added
+                        // ...
+                        // This toast is working  10-3-19 9:13 AM
+                        Toast.makeText(getApplicationContext(), "Geofence successfully added!", Toast.LENGTH_LONG).show();
+                    }
+                })
+                .addOnFailureListener(this, new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        // Failed to add geofences
+                        // ...
+                    }
+                });
+    }
+
+
+/*
+    private  void startGeofence()
+    {
+        Log.i(TAG, "startGeofence()");
+        Geofence theGeofence = createGeofence();
+        myRequest = getGeofencingRequest(theGeofence);
+        addFences();
+    }
+
+*/
+
+
+        /**
+     * Checks if Google Play services is available.
+     * @return true if it is.
+     */
+    private boolean isGooglePlayServicesAvailable() {
+        int resultCode = GoogleApiAvailability.getInstance().isGooglePlayServicesAvailable(this);
+        if (ConnectionResult.SUCCESS == resultCode) {
+            if (Log.isLoggable(TAG, Log.DEBUG)) {
+                Log.d(TAG, "Google Play services is available.");
+            }
+            return true;
+        } else {
+            Log.e(TAG, "Google Play services is unavailable.");
+            return false;
+        }
+    }
+/*
+    @Override
+    public void onConnectionFailed(ConnectionResult connectionResult) {
+        // If the error has a resolution, start a Google Play services activity to resolve it.
+        if (connectionResult.hasResolution()) {
+            try {
+                connectionResult.startResolutionForResult(this,
+                        9000);
+            } catch (IntentSender.SendIntentException e) {
+                Log.e(TAG, "Exception while resolving connection error.", e);
+            }
+        } else {
+            int errorCode = connectionResult.getErrorCode();
+            Log.e(TAG, "Connection to Google Play services failed with error code " + errorCode);
+        }
+    }
+
+    /**
+     * Once the connection is available, send a request to add the Geofences.
+     */
+    /*
+    @Override
+    public void onConnected(Bundle connectionHint) {
+        // Get the PendingIntent for the geofence monitoring request.
+        // Send a request to add the current geofences.
+        //mGeofenceRequestIntent = getGeofenceTransitionPendingIntent();
+        myGeofencingClient = LocationServices.getGeofencingClient;
+        LocationServices.GeofencingApi.addGeofences(mApiClient, GeofencingRequest,
+                mGeofenceRequestIntent);
+        Toast.makeText(this, "Some text", Toast.LENGTH_SHORT).show();
+        finish();
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) {
+        if (null != mGeofenceRequestIntent) {
+            LocationServices.GeofencingApi.removeGeofences(mApiClient, mGeofenceRequestIntent);
+        }
+    }
+
+
+      //Create a PendingIntent that triggers GeofenceTransitionIntentService when a geofence
+      //transition occurs.
+
+    private PendingIntent getGeofenceTransitionPendingIntent() {
+        Intent intent = new Intent(this, GeofenceTransitionsIntentService.class);
+        return PendingIntent.getService(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+    }
+*/
 
     //    @NonNull
     public void getIPAddress() {
@@ -227,29 +346,21 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         protected void onPostExecute(String string) {
             Log.d("deviceIpAddress", string);
-            Toast.makeText(getApplicationContext(), deviceIpAddress, Toast.LENGTH_SHORT).show();
+            //Toast.makeText(getApplicationContext(), deviceIpAddress, Toast.LENGTH_SHORT).show();
         }
     }
 
-<<<<<<< HEAD
-
-
-    // Got this from YouTube 'Do Something on First App Start Only - Android Studio Tutorial'  9/19/19
-    public void showStartDialog()
-    {
-=======
     // Got this from YouTube 'Do Something on First App Start Only - Android Studio Tutorial'  9/19/19
     public void showStartDialog()
     {
         //layout2 = (LinearLayout) findViewById(R.id.enter_code);
         //layout2.setVisibility(View.GONE);
->>>>>>> Deleted .git repo and started from scratch
         layout1 = (LinearLayout) findViewById(R.id.firstAppStart);
-        Toast.makeText(getApplicationContext(), "Testing first app start", Toast.LENGTH_SHORT).show();
+        //Toast.makeText(getApplicationContext(), "Testing first app start", Toast.LENGTH_SHORT).show();
         TextView test = (TextView) findViewById(R.id.test);
-        test.setVisibility(View.VISIBLE);
+        test.setVisibility(View.GONE);
         layout1.setBackgroundColor(Color.parseColor("#A4D65E"));
-        layout1.setVisibility(View.VISIBLE);
+        layout1.setVisibility(View.GONE);
 
         /*
         new AlertDialog.Builder(this)
@@ -335,46 +446,25 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     public void clearMarkers(View v)
     {
-        Toast.makeText(getApplicationContext(), "Clear Map", Toast.LENGTH_SHORT).show();
+        //Toast.makeText(getApplicationContext(), received, Toast.LENGTH_SHORT).show();
+
         mMap.clear();
         spin1.setSelection(0);
         spin2.setVisibility(View.GONE);
+        Toast.makeText(getApplicationContext(), String.valueOf(GeofenceBroadcastReceiver.geofenceTransition), Toast.LENGTH_LONG).show();
     }
 
     // This is for the 'send' button in the firstAppStart view
-<<<<<<< HEAD
-    public void send(View v)
-=======
     public void sendAddress(View v)
->>>>>>> Deleted .git repo and started from scratch
     {
         // Get the address typed in and assign it to the variable 'email'
         email = emailInput.getText().toString();
         Toast.makeText(getApplicationContext(), email, Toast.LENGTH_SHORT).show();// For testing
         layout1.setVisibility(View.GONE);
-<<<<<<< HEAD
-        // Make send button disappear here
-        Button button1 = (Button) findViewById(R.id.send);
-        button1.setVisibility(View.GONE);
-    }
-
-    private void createListAdapter3(Spinner s)
-    {
-        s = (Spinner) findViewById(R.id.spinner2); // Declared the spinner globally so I could use it in onItemSelected method
-        s.setOnItemSelectedListener(this);
-        //Creating the ArrayAdapter instance having the bank name list
-        ArrayAdapter bb = new ArrayAdapter(this, android.R.layout.simple_spinner_item, choice);
-        bb.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        //Setting the ArrayAdapter data on the Spinner
-        s.setAdapter(bb);
-        s.setVisibility(View.GONE);
-    }
-
-=======
 
         TextView code_text = (TextView) findViewById(R.id.code_info);
-        code_text.setVisibility(View.VISIBLE);
-        layout2.setVisibility(View.VISIBLE);
+        code_text.setVisibility(View.GONE);
+        layout2.setVisibility(View.GONE);
 
         InsertData(email, "code", ServerURL);
 
@@ -450,7 +540,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
 
                 Toast.makeText(getApplicationContext(), "Data Submit Successfully", Toast.LENGTH_LONG).show();
-                Toast.makeText(getApplicationContext(), token, Toast.LENGTH_LONG).show();
+                Toast.makeText(getApplicationContext(), token, Toast.LENGTH_LONG).show(); // This is showing up as an empty toast
+                                   // after pressing the sendAddress button
 
             } // End onPostExecute
         } // End class
@@ -461,7 +552,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     } // End InsertData method
 
->>>>>>> Deleted .git repo and started from scratch
     private void createArrayAdapter2(ArrayList<String> choice)
     {
         spin2 = (Spinner) findViewById(R.id.spinner2); // Declared the spinner globally so I could use it in onItemSelected method
@@ -506,10 +596,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
                 spin2.setSelection(0);
 
-<<<<<<< HEAD
-=======
                 // Should I make an 'addMarker' method?
->>>>>>> Deleted .git repo and started from scratch
                 loca = new LatLng(coordArrayMain.get(position)[0], coordArrayMain.get(position)[1]);
                 mMap.addMarker(new MarkerOptions().position(loca).title(nameArray.get(position)));
 
@@ -613,10 +700,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     {
         Log.d(TAG, "getLocationPermission: getting location permissions");
         String[] permissions = {Manifest.permission.ACCESS_FINE_LOCATION,
-                Manifest.permission.ACCESS_COARSE_LOCATION};
+                Manifest.permission.ACCESS_COARSE_LOCATION,Manifest.permission.ACCESS_BACKGROUND_LOCATION,
+                Manifest.permission.RECEIVE_BOOT_COMPLETED,Manifest.permission.ACCESS_WIFI_STATE};
 
         if (ContextCompat.checkSelfPermission(this.getApplicationContext(),
-                (String) FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                (String) Manifest.permission.ACCESS_BACKGROUND_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             if (ContextCompat.checkSelfPermission(this.getApplicationContext(),
                     COURSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
                 mLocationPermissionsGranted = true;
@@ -650,6 +738,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                             Location currentLocation = (Location) task.getResult();
 
                             moveCamera(new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude()), DEFAULT_ZOOM);
+
+                            //Double lat = currentLocation.getLatitude();
+                            Double longi = currentLocation.getLongitude();
+                            //Toast.makeText(getApplicationContext(), String.valueOf(longi), Toast.LENGTH_LONG).show();
                         } else {
                             Log.d(TAG, "onComplete: current location is null");
                             Toast.makeText(MapsActivity.this, "unable to get current location", Toast.LENGTH_SHORT).show();
@@ -685,6 +777,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             // in the upper right hand corner by default
         }
         mUiSettings.setZoomControlsEnabled(true);
+
+        // This creates a circle around my office
+        LatLng middle = new LatLng(44.3408203, -69.7973877);
+        CircleOptions circleOptions = new CircleOptions()
+                .center(middle)
+                .strokeColor(Color.argb(50, 70,70,70))
+                .fillColor( Color.argb(100, 150,150,150) )
+                .radius( 20 );
+                mMap.addCircle(circleOptions);
     }
 
     private void initMap() {

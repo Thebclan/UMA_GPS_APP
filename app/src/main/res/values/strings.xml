@@ -1,8 +1,4 @@
 <resources>
     <string name="app_name">UMA_GPS</string>
-<<<<<<< HEAD
-    <string name="title_activity_maps">Map</string>
-=======
     <string name="title_activity_maps">UMA On-Campus Locator</string>
->>>>>>> Deleted .git repo and started from scratch
 </resources>
