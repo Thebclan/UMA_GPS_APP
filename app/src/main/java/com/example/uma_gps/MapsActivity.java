@@ -2,7 +2,10 @@ package com.example.uma_gps;
 
 import android.Manifest;
 import android.app.PendingIntent;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
@@ -109,9 +112,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
 
 
-    private Geofence myGeofence;
+    private Geofence myGeofence = null;
     private LocationServices mLocationService;
-
+    public static final String CUSTOM_BROADCAST_ACTION = "com.example.uma_gps.CUSTOM_BROADCAST";
 
     private GoogleApiClient mApiClient;
     private GeofencingClient myGeofencingClient;
@@ -119,6 +122,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private  PendingIntent geofencePendingIntent;  // Stores the PendingIntent used to request geofence monitoring.
     //private Circle geoFenceLimits;
     protected static int received = 0;
+
+    // Used this with the code on line 188
+    BroadcastReceiver receiver;
+    IntentFilter filter;
 
 
     @Override
@@ -178,6 +185,20 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         myGeofencingClient = LocationServices.getGeofencingClient(this);
 
+        // Found this code online to test a Broadcast Receiver
+        receiver=new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                Toast.makeText(context,"Broadcast Received in Activity called",Toast.LENGTH_SHORT).show();
+            }
+        };
+        // to register local receiver
+        filter = new IntentFilter();
+        // specify the action to which receiver will listen
+        filter.addAction("com.local.receiver");
+        registerReceiver(receiver,filter);
+
+
     }
 
     @Override
@@ -189,7 +210,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private void createGeofence()
     {
         myGeofence = new Geofence.Builder()
-        .setRequestId("UMA_Augusta").setCircularRegion(44.3408203, -69.7973877,2)
+        .setRequestId("UMA_Augusta").setCircularRegion(44.499256, -70.2001466,300)
                 .setExpirationDuration(myGeofence.NEVER_EXPIRE)
                 .setTransitionTypes( myGeofence.GEOFENCE_TRANSITION_ENTER | myGeofence.GEOFENCE_TRANSITION_EXIT )
                 .build();
@@ -199,7 +220,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         GeofencingRequest.Builder builder = new GeofencingRequest.Builder();
         builder.setInitialTrigger(GeofencingRequest.INITIAL_TRIGGER_ENTER);
         builder.addGeofence(myGeofence);
-        Log.i(TAG,"This is the getGeofencingRequest method");
+        if (myGeofence != null) {
+            Log.i(TAG, "This is the getGeofencingRequest method");
+        }
         return builder.build();
     }
 
@@ -240,19 +263,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 });
     }
 
-
-/*
-    private  void startGeofence()
-    {
-        Log.i(TAG, "startGeofence()");
-        Geofence theGeofence = createGeofence();
-        myRequest = getGeofencingRequest(theGeofence);
-        addFences();
-    }
-
-*/
-
-
         /**
      * Checks if Google Play services is available.
      * @return true if it is.
@@ -269,55 +279,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             return false;
         }
     }
-/*
-    @Override
-    public void onConnectionFailed(ConnectionResult connectionResult) {
-        // If the error has a resolution, start a Google Play services activity to resolve it.
-        if (connectionResult.hasResolution()) {
-            try {
-                connectionResult.startResolutionForResult(this,
-                        9000);
-            } catch (IntentSender.SendIntentException e) {
-                Log.e(TAG, "Exception while resolving connection error.", e);
-            }
-        } else {
-            int errorCode = connectionResult.getErrorCode();
-            Log.e(TAG, "Connection to Google Play services failed with error code " + errorCode);
-        }
-    }
-
-    /**
-     * Once the connection is available, send a request to add the Geofences.
-     */
-    /*
-    @Override
-    public void onConnected(Bundle connectionHint) {
-        // Get the PendingIntent for the geofence monitoring request.
-        // Send a request to add the current geofences.
-        //mGeofenceRequestIntent = getGeofenceTransitionPendingIntent();
-        myGeofencingClient = LocationServices.getGeofencingClient;
-        LocationServices.GeofencingApi.addGeofences(mApiClient, GeofencingRequest,
-                mGeofenceRequestIntent);
-        Toast.makeText(this, "Some text", Toast.LENGTH_SHORT).show();
-        finish();
-    }
-
-    @Override
-    public void onConnectionSuspended(int i) {
-        if (null != mGeofenceRequestIntent) {
-            LocationServices.GeofencingApi.removeGeofences(mApiClient, mGeofenceRequestIntent);
-        }
-    }
-
-
-      //Create a PendingIntent that triggers GeofenceTransitionIntentService when a geofence
-      //transition occurs.
-
-    private PendingIntent getGeofenceTransitionPendingIntent() {
-        Intent intent = new Intent(this, GeofenceTransitionsIntentService.class);
-        return PendingIntent.getService(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
-    }
-*/
 
     //    @NonNull
     public void getIPAddress() {
@@ -451,7 +412,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mMap.clear();
         spin1.setSelection(0);
         spin2.setVisibility(View.GONE);
-        Toast.makeText(getApplicationContext(), String.valueOf(GeofenceBroadcastReceiver.geofenceTransition), Toast.LENGTH_LONG).show();
+        Toast.makeText(getApplicationContext(), String.valueOf(received), Toast.LENGTH_LONG).show();
+        //Toast.makeText(getApplicationContext(), String.valueOf(GeofenceBroadcastReceiver.geofenceTransition), Toast.LENGTH_LONG).show();
+        //Intent intent=new Intent("com.local.receiver");
+        //sendBroadcast(intent);
     }
 
     // This is for the 'send' button in the firstAppStart view
@@ -704,7 +668,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 Manifest.permission.RECEIVE_BOOT_COMPLETED,Manifest.permission.ACCESS_WIFI_STATE};
 
         if (ContextCompat.checkSelfPermission(this.getApplicationContext(),
-                (String) Manifest.permission.ACCESS_BACKGROUND_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                (String) FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             if (ContextCompat.checkSelfPermission(this.getApplicationContext(),
                     COURSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
                 mLocationPermissionsGranted = true;
@@ -740,8 +704,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                             moveCamera(new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude()), DEFAULT_ZOOM);
 
                             //Double lat = currentLocation.getLatitude();
-                            Double longi = currentLocation.getLongitude();
-                            //Toast.makeText(getApplicationContext(), String.valueOf(longi), Toast.LENGTH_LONG).show();
+                            //Double longi = currentLocation.getLongitude();
+                            //Toast.makeText(getApplicationContext(), String.valueOf(lat), Toast.LENGTH_LONG).show();
                         } else {
                             Log.d(TAG, "onComplete: current location is null");
                             Toast.makeText(MapsActivity.this, "unable to get current location", Toast.LENGTH_SHORT).show();
@@ -779,7 +743,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mUiSettings.setZoomControlsEnabled(true);
 
         // This creates a circle around my office
-        LatLng middle = new LatLng(44.3408203, -69.7973877);
+        LatLng middle = new LatLng(44.499256, -70.2001466);
         CircleOptions circleOptions = new CircleOptions()
                 .center(middle)
                 .strokeColor(Color.argb(50, 70,70,70))

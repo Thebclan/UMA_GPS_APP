@@ -21,13 +21,14 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <receiver android:name="com.example.uma_gps.GeofenceBroadcastReceiver"
+        <receiver android:name=".GeofenceBroadcastReceiver"
             android:enabled="true"
             android:exported="true">
-            <intent-filter android:priority="1001">
-                <action android:name="com.example.BroadcastReceiver"/>
+            <!--<intent-filter android:priority="1001">-->
+                <!--<action android:name="com.example.uma_gps.CUSTOM_BROADCAST" />-->
+                <!--<action android:name="android.intent.action.ACTION_POWER_DISCONNECTED"/>-->
                 <!--android:name="android.intent.action.BOOT_COMPLETED"-->
-            </intent-filter>
+            <!--</intent-filter>-->
         </receiver>
 
 
