@@ -2,17 +2,13 @@ package com.example.uma_gps;
 
 import android.Manifest;
 import android.app.PendingIntent;
-import android.content.BroadcastReceiver;
-import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Location;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
@@ -63,23 +59,14 @@ import org.apache.http.util.EntityUtils;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.net.InetAddress;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
-
-
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, AdapterView.OnItemSelectedListener
-
-
-
 {
-    public static String deviceIpAddress = "";
     String token = "";
     String email;
     String code;
@@ -110,8 +97,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     String ServerURL = "https://provost.uma.edu/api/login.php"; // To send email address to api
     String ValidationURL = "https://provost.uma.edu/api/validate.php"; // To send code to api
 
-
-
     private Geofence myGeofence = null;
     private LocationServices mLocationService;
     public static final String CUSTOM_BROADCAST_ACTION = "com.example.uma_gps.CUSTOM_BROADCAST";
@@ -120,13 +105,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private GeofencingClient myGeofencingClient;
     private GeofencingRequest myRequest;
     private  PendingIntent geofencePendingIntent;  // Stores the PendingIntent used to request geofence monitoring.
-    //private Circle geoFenceLimits;
+    // Used this to test onReceive method in GeofenceBroadcastReceiver class
     protected static int received = 0;
-
-    // Used this with the code on line 188
-    BroadcastReceiver receiver;
-    IntentFilter filter;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -142,11 +122,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         boolean firstStart = prefs.getBoolean("firstStart", true);
         token = prefs.getString("token", "");
 
-
-        //getIpAddress(this); // Only works if connected to wifi. Saved the code in notepad
-        getIPAddress(); // This works but showing wrong ip address(found out phones can have several)
-        //Toast.makeText(getApplicationContext(), deviceIpAddress, Toast.LENGTH_SHORT).show();
-
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
 
@@ -155,21 +130,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             finish();
             return;
         }
-/*
-        mApiClient = new GoogleApiClient.Builder(this)
-                .addApi(LocationServices.API)
-                .addConnectionCallbacks(this)
-                .addOnConnectionFailedListener(this)
-                .build();
 
-        mApiClient.connect();
-*/
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
-        //mapFragment.setVisibility(View.GONE); // This doesn't work
-        //mUrlDisplayTextView = (TextView) findViewById(R.id.tv_url_display);
+
         getLocationPermission();
 
         layout2 = (LinearLayout) findViewById(R.id.enter_code);
@@ -185,32 +151,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         myGeofencingClient = LocationServices.getGeofencingClient(this);
 
-        // Found this code online to test a Broadcast Receiver
-        receiver=new BroadcastReceiver() {
-            @Override
-            public void onReceive(Context context, Intent intent) {
-                Toast.makeText(context,"Broadcast Received in Activity called",Toast.LENGTH_SHORT).show();
-            }
-        };
-        // to register local receiver
-        filter = new IntentFilter();
-        // specify the action to which receiver will listen
-        filter.addAction("com.local.receiver");
-        registerReceiver(receiver,filter);
-
-
-    }
-
-    @Override
-    public void onStart() {
-        super.onStart();
         addFences();
     }
 
     private void createGeofence()
     {
         myGeofence = new Geofence.Builder()
-        .setRequestId("UMA_Augusta").setCircularRegion(44.499256, -70.2001466,300)
+        .setRequestId("UMA_Augusta").setCircularRegion(44.340852, -69.797395,300)
                 .setExpirationDuration(myGeofence.NEVER_EXPIRE)
                 .setTransitionTypes( myGeofence.GEOFENCE_TRANSITION_ENTER | myGeofence.GEOFENCE_TRANSITION_EXIT )
                 .build();
@@ -263,10 +210,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 });
     }
 
-        /**
-     * Checks if Google Play services is available.
-     * @return true if it is.
-     */
+    // Checks if Google Play services is available.
+    // @return true if it is.
     private boolean isGooglePlayServicesAvailable() {
         int resultCode = GoogleApiAvailability.getInstance().isGooglePlayServicesAvailable(this);
         if (ConnectionResult.SUCCESS == resultCode) {
@@ -277,37 +222,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         } else {
             Log.e(TAG, "Google Play services is unavailable.");
             return false;
-        }
-    }
-
-    //    @NonNull
-    public void getIPAddress() {
-        if (TextUtils.isEmpty(deviceIpAddress))
-            new PublicIPAddress().execute();
-        //return deviceIpAddress;
-    }
-
-
-    public class PublicIPAddress extends AsyncTask<String, Void, String> {
-        InetAddress localhost = null;
-
-        protected String doInBackground(String... urls) {
-            try {
-                localhost = InetAddress.getLocalHost();
-                URL url_name = new URL("http://bot.whatismyipaddress.com");
-                BufferedReader sc = new BufferedReader(new InputStreamReader(url_name.openStream()));
-                deviceIpAddress = sc.readLine().trim();
-            } catch (Exception e) {
-                deviceIpAddress = "";
-            }
-            //Toast.makeText(getApplicationContext(), deviceIpAddress, Toast.LENGTH_SHORT).show(); // App wouldn't start
-                                                                                  // with this enabled
-            return deviceIpAddress;
-        }
-
-        protected void onPostExecute(String string) {
-            Log.d("deviceIpAddress", string);
-            //Toast.makeText(getApplicationContext(), deviceIpAddress, Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -323,43 +237,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         layout1.setBackgroundColor(Color.parseColor("#A4D65E"));
         layout1.setVisibility(View.GONE);
 
-        /*
-        new AlertDialog.Builder(this)
-                .setTitle("One time dialog")
-                .setMessage("This should only be shown once")
-                .setPositiveButton("ok", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int i) {
-                        dialog.dismiss();
-                    }
-                })
-                .create().show();
-       */
         //SharedPreferences prefs = getSharedPreferences("prefs", MODE_PRIVATE);
         //SharedPreferences.Editor editor = prefs.edit();
         //editor.putBoolean("firstStart", false);
         //editor.apply();
-    }
-
-    public class Reminder
-    {
-        Timer timer;
-
-        public Reminder(int seconds)
-        {
-            timer = new Timer();
-            timer.schedule(new RemindTask(), seconds * 1000);
-        }
-
-        class RemindTask extends TimerTask
-        {
-            public void run()
-            {
-                spin1.setSelection(0);
-                //System.out.println("Time's up!");
-                timer.cancel(); //Terminate the timer thread
-            }
-        }
     }
 
     private class DownloadFilesTask extends AsyncTask<URL, Void, List<String[]>>
@@ -407,15 +288,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     public void clearMarkers(View v)
     {
+        // Used this to test onReceive method in GeofenceBroadcastReceiver class
         //Toast.makeText(getApplicationContext(), received, Toast.LENGTH_SHORT).show();
 
         mMap.clear();
         spin1.setSelection(0);
         spin2.setVisibility(View.GONE);
-        Toast.makeText(getApplicationContext(), String.valueOf(received), Toast.LENGTH_LONG).show();
-        //Toast.makeText(getApplicationContext(), String.valueOf(GeofenceBroadcastReceiver.geofenceTransition), Toast.LENGTH_LONG).show();
-        //Intent intent=new Intent("com.local.receiver");
-        //sendBroadcast(intent);
     }
 
     // This is for the 'send' button in the firstAppStart view
@@ -495,10 +373,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
                         layout2.setVisibility(View.GONE);
 
-                        ////SharedPreferences prefs = getSharedPreferences("prefs", MODE_PRIVATE);
-                        //        //SharedPreferences.Editor editor = prefs.edit();
-                        //        //editor.putString("token", token);
-                        //        //editor.apply();
+                        SharedPreferences prefs = getSharedPreferences("prefs", MODE_PRIVATE);
+                        SharedPreferences.Editor editor = prefs.edit();
+                        editor.putString("token", token);
+                        editor.commit();
                     }
                 }
 
@@ -703,6 +581,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
                             moveCamera(new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude()), DEFAULT_ZOOM);
 
+                            // I used the following lines to show a toast with my current location
                             //Double lat = currentLocation.getLatitude();
                             //Double longi = currentLocation.getLongitude();
                             //Toast.makeText(getApplicationContext(), String.valueOf(lat), Toast.LENGTH_LONG).show();
@@ -743,12 +622,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mUiSettings.setZoomControlsEnabled(true);
 
         // This creates a circle around my office
-        LatLng middle = new LatLng(44.499256, -70.2001466);
+        LatLng middle = new LatLng(44.340852, -69.797395);
         CircleOptions circleOptions = new CircleOptions()
                 .center(middle)
                 .strokeColor(Color.argb(50, 70,70,70))
-                .fillColor( Color.argb(100, 150,150,150) )
-                .radius( 20 );
+                .fillColor( Color.argb(50, 150,150,150) )
+                .radius( 300 );
                 mMap.addCircle(circleOptions);
     }
 

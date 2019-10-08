@@ -11,7 +11,6 @@ import android.widget.Toast;
 import com.google.android.gms.location.Geofence;
 import com.google.android.gms.location.GeofencingEvent;
 
-import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
@@ -33,9 +32,7 @@ public class GeofenceBroadcastReceiver extends BroadcastReceiver {
     String sendTimeURL = "https://provost.uma.edu/api/record_data.php";
     String currentTimeIn;
     String currentTimeOut;
-
-    public GeofenceBroadcastReceiver(){
-    }
+    String savedToken;
 
     // ...
     public void onReceive(final Context context, Intent intent) {
@@ -53,10 +50,7 @@ public class GeofenceBroadcastReceiver extends BroadcastReceiver {
         geofenceTransition = geofencingEvent.getGeofenceTransition();
 
         SharedPreferences prefs = context.getSharedPreferences("prefs", MODE_PRIVATE);
-        int isZero = prefs.getInt("timeIn", 0);
-        //SharedPreferences.Editor editor = prefs.edit();
-        //editor.putInt("timeIn", 0);
-       // editor.commit();
+        int isItZero = prefs.getInt("timeIn", 0);
 
         // Test that the reported transition was of interest.
         if (geofenceTransition == Geofence.GEOFENCE_TRANSITION_ENTER ||
@@ -65,9 +59,8 @@ public class GeofenceBroadcastReceiver extends BroadcastReceiver {
             {
                 Log.i(TAG, "Enter Event happened");
                 Toast.makeText(context.getApplicationContext(), "Geofence entered!", Toast.LENGTH_LONG).show();
-                //MapsActivity.timeEntered();
 
-                if (isZero == 0)
+                if (isItZero == 0)
                 {
                     //SharedPreferences prefs = context.getSharedPreferences("prefs", MODE_PRIVATE);
                     int currentTimeEntered = (int) (new Date().getTime() / 1000);
@@ -83,16 +76,19 @@ public class GeofenceBroadcastReceiver extends BroadcastReceiver {
                 Log.i(TAG, "Exit Event happened");
                 Toast.makeText(context.getApplicationContext(), "Geofence exited!", Toast.LENGTH_LONG).show();
 
-                if (isZero != 0)
-                {
+                savedToken = prefs.getString("token", "");
+                int savedTimeIn = prefs.getInt("timeIn", 0);
+                currentTimeIn = String.valueOf(savedTimeIn);
+
                     int currentTimeExited = (int) (new Date().getTime() / 1000);
                     currentTimeOut = String.valueOf(currentTimeExited);
                     SharedPreferences.Editor editor = prefs.edit();
                     editor.putInt("timeOut", currentTimeExited);
                     editor.commit();
+                    // Used this for testing
                     MapsActivity.received++;
-                    // Send times to api.
 
+                    // Send times and token to server
                     class SendPostReqAsyncTask extends AsyncTask<String, Void, String>
                     {
                         @Override
@@ -108,12 +104,11 @@ public class GeofenceBroadcastReceiver extends BroadcastReceiver {
                                 HttpClient httpClient = new DefaultHttpClient();
 
                                 HttpPost httpPost = new HttpPost(sendTimeURL);
-                                //httpPost.addHeader("Authorization", "Bearer" + token);
+                                httpPost.addHeader("Authorization", "Bearer " + savedToken);
 
                                 httpPost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
 
-                                HttpResponse httpResponse;
-                                httpResponse = httpClient.execute(httpPost);
+                                httpClient.execute(httpPost);
 
 
                             } catch (ClientProtocolException e) {
@@ -127,6 +122,11 @@ public class GeofenceBroadcastReceiver extends BroadcastReceiver {
                         protected void onPostExecute(String result) {
                             super.onPostExecute(result);
 
+                            SharedPreferences prefs = context.getSharedPreferences("prefs", MODE_PRIVATE);
+                            SharedPreferences.Editor editor = prefs.edit();
+                            editor.putInt("timeIn",0);
+                            //editor.putInt("timeOut", 0);
+
                             Toast.makeText(context, "Time Data Sent Successfully", Toast.LENGTH_LONG).show();
 
                         } // End onPostExecute
@@ -136,10 +136,7 @@ public class GeofenceBroadcastReceiver extends BroadcastReceiver {
 
                     sendPostReqAsyncTask.execute(currentTimeIn, currentTimeOut);
 
-
-                } // End inner if
-            } // End outer if
-
+            } // End if
 
         } else
             {
