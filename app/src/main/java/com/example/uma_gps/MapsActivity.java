@@ -75,7 +75,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     LinearLayout layout1; // Enter/send email. First screen on first app start.
     LinearLayout layout2; // Enter/submit code. Second screen on first app start.
     Spinner spin1;
-    Spinner spin2;
     private static final String TAG = "mapsActivity";
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1234;
     private static final Object FINE_LOCATION = Manifest.permission.ACCESS_FINE_LOCATION;
@@ -86,12 +85,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private FusedLocationProviderClient mFusedLocationProviderClient;
     private static final float DEFAULT_ZOOM = 16f;
     private Boolean mLocationPermissionsGranted = false;
-    ArrayList<Double[]> coordArray = new ArrayList<Double[]>();
     ArrayList<Double[]> coordArrayMain = new ArrayList<Double[]>();
-    ArrayList<Double[]> coordArrayRandall = new ArrayList<Double[]>();
-    ArrayList<String> Randall_Student_Center = new ArrayList<String>();
     ArrayList<String> nameArray = new ArrayList<String>();
-    ArrayList<String> jewettHall = new ArrayList<String>();
     ArrayList<String> choice = new ArrayList<String>();
     private static final String PATH_TO_SERVER = "https://provost.uma.edu/api/"; // Used in the background to retrieve the location data
     String ServerURL = "https://provost.uma.edu/api/login.php"; // To send email address to api
@@ -111,10 +106,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
-        jewettHall.add("Room_101");
-        jewettHall.add("Room_102");
-        jewettHall.add("Room_103");
-
         DownloadFilesTask downloadFilesTask = new DownloadFilesTask();
         downloadFilesTask.execute();
 
@@ -293,7 +284,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         mMap.clear();
         spin1.setSelection(0);
-        spin2.setVisibility(View.GONE);
     }
 
     // This is for the 'send' button in the firstAppStart view
@@ -309,10 +299,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         layout2.setVisibility(View.GONE);
 
         InsertData(email, "code", ServerURL);
-
-        // Make 'send' button disappear here
-        //Button button1 = (Button) findViewById(R.id.send_email);
-        //button1.setVisibility(View.GONE);
     }
 
     public void sendCode(View v)
@@ -350,8 +336,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
                     if (url.equals(ValidationURL)) { // 'if' statement makes sure the token is assigned to the variable after the second 'send' button is pressed
                         token = EntityUtils.toString(httpEntity); // Converts token to a string and assigns it to a variable
-                        //httpPost.addHeader("Authorization", "Bearer" + token); // Can't use this here. I need to put it in the method
-                                                  // that sends the data in the background
                     }
 
 
@@ -394,18 +378,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     } // End InsertData method
 
-    private void createArrayAdapter2(ArrayList<String> choice)
-    {
-        spin2 = (Spinner) findViewById(R.id.spinner2); // Declared the spinner globally so I could use it in onItemSelected method
-        spin2.setOnItemSelectedListener(this);
-        //Creating the ArrayAdapter instance
-        ArrayAdapter bb = new ArrayAdapter(this, android.R.layout.simple_spinner_item, choice);
-        bb.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        //Setting the ArrayAdapter data on the Spinner
-        spin2.setAdapter(bb);
-        spin2.setVisibility(View.GONE);
-    }
-
     private void createArrayAdapter(ArrayList<String> name)
     {
         spin1 = (Spinner) findViewById(R.id.spinner1); // Declared the spinner globally so I could use it in onItemSelected method
@@ -425,19 +397,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         {
             if (position > 0) // This is so no marker is shown until something in the list is selected
             {
-                //spin2.setVisibility(View.GONE);
-
-                //Toast.makeText(getApplicationContext(), "Touch marker for more info", Toast.LENGTH_SHORT).show();
-                if (position == 3)
-                {
-                    choice = Randall_Student_Center;
-                    coordArray = coordArrayRandall;
-                    createArrayAdapter2(choice);
-                    spin2.setVisibility(View.VISIBLE);
-                }
-
-                spin2.setSelection(0);
-
                 // Should I make an 'addMarker' method?
                 loca = new LatLng(coordArrayMain.get(position)[0], coordArrayMain.get(position)[1]);
                 mMap.addMarker(new MarkerOptions().position(loca).title(nameArray.get(position)));
@@ -446,59 +405,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 moveCamera(loca, 17f);
 
                 Toast.makeText(getApplicationContext(), nameArray.get(position), Toast.LENGTH_SHORT).show();
-                //if (position == 5)
-                //{
-                //spin2.setVisibility(View.VISIBLE);
-            }
-        }
-        if (arg0.getId() == R.id.spinner2)
-        {
-            if (position > 0) // This is so no marker is shown until something in the list is selected
-            {
-                //spin2.setSelection(0);
 
-                Toast.makeText(getApplicationContext(), "Touch marker for more info", Toast.LENGTH_SHORT).show();
-
-                String moreInfo = "";
-
-                if (position == 2)
-                {
-                    moreInfo = "2nd floor";
-                }
-
-                loca = new LatLng(coordArray.get(position)[0], coordArray.get(position)[1]);
-                mMap.addMarker(new MarkerOptions().position(loca).title(choice.get(position)).snippet(moreInfo));
-
-                //if (position > 0)
-                moveCamera(loca, 19f);
-
-                //spin2.setVisibility(View.GONE); // This hides the spinner.
-                //spin1.setSelection(0);
-                if (position == 1) // Did this to test visibility
-                {
-                    //mMap.clear();
-                    //Toast.makeText(getApplicationContext(), Randall_Student_Center.get(position), Toast.LENGTH_SHORT).show();
-                    spin2.setVisibility(View.GONE); // This hides the spinner.
-                    spin1.setSelection(0);
-
-                    //LinearLayout layout1 = (LinearLayout) findViewById(R.id.firstAppStart);
-                    //TextView test = (TextView) findViewById(R.id.test);
-                    //test.setVisibility(View.VISIBLE);
-
-                    //RelativeLayout layout1 = (RelativeLayout) findViewById(R.id.button_window);
-                    //layout1.setVisibility(View.INVISIBLE); // This works
-                    //layout1.setBackgroundColor(Color.WHITE);
-                    //layout1.setVisibility(View.VISIBLE);
-                    // This works
-                    //new Reminder(2); // Don't need this
-                    //new Handler().postDelayed(new Runnable() { // This creates a delay
-                    //@Override
-                    //public void run()
-                    //{
-                    //spin1.setSelection(0);
-                    //}
-                    //}, 3000);
-                }
+                spin1.setSelection(0);
             }
         }
     }
@@ -511,7 +419,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     private void convertCsvFile(List<String[]> result)
     {
-        for (int i = 0; i < 7; i++) // result.size()
+        for (int i = 0; i < result.size(); i++) // result.size()
         {
             String[] rows = result.get(i);
             nameArray.add(rows[0]);
@@ -522,20 +430,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             coordArrayMain.add(row);
         }
 
-        for (int i = 7; i < 11; i++)
-        {
-            String[] rows = result.get(i);
-            Randall_Student_Center.add(rows[0]);
-
-            Double[] row = new Double[2];
-            row[0] = Double.parseDouble(result.get(i)[1]);
-            row[1] = Double.parseDouble(result.get(i)[2]);
-            coordArrayRandall.add(row);
-        }
-
         createArrayAdapter(nameArray);
-        createArrayAdapter2(jewettHall); // Had to do this so array wouldn't be empty when it gets populated in
-                                         // the onItemSelected method
     }
 
     private void getLocationPermission()
